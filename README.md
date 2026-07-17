@@ -3,7 +3,7 @@ Go Environment Helper
 
 [![Code Coverage](https://codecov.io/gh/vpmv/goenv/graph/badge.svg)](https://codecov.io/gh/vpmv/goenv)
 
-This package provides a simple way to load environment variables from .env files into your Go application, and an atomic API to read and write environment variables.
+This package provides a simple way to load environment variables from .env and .ini files into your Go application, and an atomic API to read and write environment variables.
 
 It supports basic value types such as strings, integers, booleans, floats, and slices.
 
