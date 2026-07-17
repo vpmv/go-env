@@ -12,7 +12,7 @@ import (
 // The order of the files is important; subsequent files will overload previously set variables.
 // The default order is: .env, .env.local, .env.<env>, .env.<env>.local
 func LoadDotEnv(baseDir string, files ...string) {
-	SetEnvironment(false)
+	SetEnv(false)
 	env := GetEnv().String()
 
 	files = append([]string{

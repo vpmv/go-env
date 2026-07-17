@@ -44,7 +44,7 @@ func ParseEnv(env Environment) Environment {
 	return env
 }
 
-func SetEnvironment(override bool, env ...Environment) {
+func SetEnv(override bool, env ...Environment) {
 	if !override && GetEnv() != `` {
 		return
 	}
