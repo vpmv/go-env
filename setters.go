@@ -19,7 +19,6 @@ func Set[T BasicType](key string, value T) {
 	)
 
 	switch v.Kind() {
-	default:
 	case reflect.String:
 		s = v.String()
 	case reflect.Int:
