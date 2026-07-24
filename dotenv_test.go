@@ -32,9 +32,9 @@ func TestLoadDotEnvPanic(t *testing.T) {
 }
 
 func unsertDotEnvVars() {
-	os.Unsetenv(`ENV`)
-	os.Unsetenv(`VALUE1`)
-	os.Unsetenv(`VALUE2`)
-	os.Unsetenv(`SECTION1_VALUE`)
-	os.Unsetenv(`SECTION2_VALUE`)
+	_ = os.Unsetenv(`ENV`)
+	_ = os.Unsetenv(`VALUE1`)
+	_ = os.Unsetenv(`VALUE2`)
+	_ = os.Unsetenv(`SECTION1_VALUE`)
+	_ = os.Unsetenv(`SECTION2_VALUE`)
 }

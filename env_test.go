@@ -53,5 +53,5 @@ func TestEnv(t *testing.T) {
 		t.Fail()
 	}
 
-	os.Unsetenv(`ENV`)
+	_ = os.Unsetenv(`ENV`)
 }

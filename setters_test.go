@@ -34,5 +34,5 @@ func TestSetter(t *testing.T) {
 	Set(`TEST_VAL`, Environment(`magic`))
 	assert.Equal(t, `magic`, os.Getenv(`TEST_VAL`))
 
-	os.Unsetenv(`TEST_VAL`)
+	_ = os.Unsetenv(`TEST_VAL`)
 }

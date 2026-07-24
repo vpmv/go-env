@@ -115,14 +115,14 @@ func TestEmptyIni(t *testing.T) {
 }
 
 func unsetIniEnvVars() {
-	os.Unsetenv(`ENV`)
-	os.Unsetenv(`GLOBAL_VALUE1`)
-	os.Unsetenv(`APP_VALUE1`)
-	os.Unsetenv(`APP_VALUE2`)
-	os.Unsetenv(`APP_SECTION_VALUE1`)
-	os.Unsetenv(`APP_SECTION_VALUE2`)
-	os.Unsetenv(`DATABASE_HOST`)
-	os.Unsetenv(`DATABASE_PORT`)
-	os.Unsetenv(`DATABASE_USER`)
-	os.Unsetenv(`DATABASE_PASSWORD`)
+	_ = os.Unsetenv(`ENV`)
+	_ = os.Unsetenv(`GLOBAL_VALUE1`)
+	_ = os.Unsetenv(`APP_VALUE1`)
+	_ = os.Unsetenv(`APP_VALUE2`)
+	_ = os.Unsetenv(`APP_SECTION_VALUE1`)
+	_ = os.Unsetenv(`APP_SECTION_VALUE2`)
+	_ = os.Unsetenv(`DATABASE_HOST`)
+	_ = os.Unsetenv(`DATABASE_PORT`)
+	_ = os.Unsetenv(`DATABASE_USER`)
+	_ = os.Unsetenv(`DATABASE_PASSWORD`)
 }
