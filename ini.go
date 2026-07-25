@@ -2,6 +2,7 @@ package env
 
 import (
 	"errors"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -12,7 +13,7 @@ import (
 func loadIniData(baseDir string, files []string) (*ini.File, error) {
 	var fi = make([]interface{}, len(files))
 	for i, file := range files {
-		fi[i] = safeDir(baseDir) + file
+		fi[i] = filepath.Join(baseDir, file)
 	}
 
 	data, err := ini.LooseLoad(fi[0], fi[1:]...) // LooseLoad ignores unknown files
