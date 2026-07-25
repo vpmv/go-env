@@ -143,21 +143,21 @@ import (
 )
 
 type Config struct {
-	App struct {
-		Host string `ini:"host"`
-		Port int    `ini:"port"`
-	} `ini:"app"`
-	Meta struct {
-		JWTSecret string `ini:"jwt"`
-		TTL       int    `ini:"ttl"`
-	} `ini:"app.meta"`
-	Database struct {
-		Host     string `ini:"host"`
-		Port     int    `ini:"port"`
-		User     string `ini:"user"`
-		Password string `ini:"password"`
-		Seed bool       `ini:"bool"`
-	} `ini:"database"`
+    App struct {
+        Host string `ini:"host"`
+        Port int    `ini:"port"`
+    } `ini:"app"`
+    Meta struct {
+        JWTSecret string `ini:"jwt"`
+        TTL       int    `ini:"ttl"`
+    } `ini:"app.meta"`
+    Database struct {
+        Host     string `ini:"host"`
+        Port     int    `ini:"port"`
+        User     string `ini:"user"`
+        Password string `ini:"password"`
+        Seed     bool   `ini:"bool"`
+    } `ini:"database"`
 }
 
 func main() {
@@ -191,7 +191,7 @@ type Config struct {
 
 func main() {
 	config := new(Config)
-	err := env.MapEnvYAML(config, `/app/config`, []string{`configuration.yaml`, `configuration.local.yaml`}, `defaults.yaml`)
+	err := env.MapEnvYAMLWithReferences(config, `/app/config`, []string{`defaults.yaml`})
 }
 ```
 
