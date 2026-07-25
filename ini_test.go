@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testAppConfig struct {
+type testIniAppConfig struct {
 	App struct {
 		Value1 string `ini:"value1"`
 		Value2 string `ini:"value2"`
@@ -61,7 +61,7 @@ func TestLoadIniPanic(t *testing.T) {
 }
 
 func TestMapIni(t *testing.T) {
-	config := new(testAppConfig)
+	config := new(testIniAppConfig)
 	if err := MapIni(config, `fixtures`); err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestMapIni(t *testing.T) {
 
 	SetEnv(true, Testing)
 
-	config = new(testAppConfig)
+	config = new(testIniAppConfig)
 	if err := MapIni(config, `fixtures`); err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func TestMapIni(t *testing.T) {
 }
 
 func TestMapIniError(t *testing.T) {
-	config := new(testAppConfig)
+	config := new(testIniAppConfig)
 	err := MapIni(config, `fixtures`, `illegal_character.ini`)
 	if err == nil {
 		assert.Fail(t, `MapIni should return error`)
