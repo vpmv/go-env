@@ -1,16 +1,24 @@
 Go Environment Helper
----
+===
+
+[![Go](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/go.json)](https://github.com/vpmv/go-env)
+[![Tests](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/tests.json)](https://github.com/vpmv/go-env/actions)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/coverage.json)](https://github.com/vpmv/go-env/actions)
+[![Lint](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/lint.json)](https://github.com/vpmv/go-env/actions)
 
 [![Code Coverage](https://codecov.io/gh/vpmv/go-env/graph/badge.svg)](https://codecov.io/gh/vpmv/go-env)
 
-This package provides a simple way to load environment variables from .env and .ini files into your Go application, and an atomic API to read and write environment variables.
+# About
+
+This package provides a simple way to load environment variables from a variety of files - with default value support - and an atomic API to read and write environment variables. Files supported:
+- .env
+- .ini 
+- .yaml
 
 It supports basic value types such as strings, integers, booleans, floats, and slices.
 
-# About
+## Global application environment
 
-
-## Application Environment
 The application uses a global environment variable for the general application environment: `ENV`.
 The value can be overwritten by calling `SetEnv`. Common environment shorthands are automatically parsed. The main environment types are:
 - development
@@ -36,16 +44,37 @@ Files overload each other in the following order:
 
 ## INI
 
-This package also supports loading environment variables from .ini files, using [gopkg.in/ini.v1](https://gopkg.in/ini.v1) as the file processor.
+This package supports loading environment variables from .ini files, using [gopkg.in/ini.v1](https://gopkg.in/ini.v1) as the file processor.
 
 Files overload each other in the following order:
 - env.ini
-- env.ini.local
+- env.local.ini
 - env.<app_env>.ini
 - env.<app_env>.local.ini
 - <custom_file>
 
 You can also map your (overloaded) files directly to a struct using `MapIni()`, or access the `*ini.File` object using `LoadIniFile()`.
+
+## YAML
+
+This package also provides a simple wrapper [goccy/go-yaml](github.com/guccy/go-yaml) around to load environment variables from .yaml files. 
+This allows you to map YAML into your structs, with the support of anchors/references.
+
+Files overload each other in the following order:
+- env.yaml
+- env.local.yaml
+- env.<app_env>.yaml
+- env.<app_env>.local.yaml
+- <custom_file>
+
+### Foreign Anchors
+
+> [!NOTE]
+> The package [goccy/go-yaml](github.com/guccy/go-yaml) supports loading anchors from other files. Although it is designed to support `reference dirories`, we explicitly only support `reference files`, because `reference directories` will evaluate all files in order first. If an unknown reference is found, it'll stop execution.  
+
+If you want to use YAML anchors from different files, you can supply paths to `reference files` where they're defined. This allows you to easily reuse/overwrite blocks of configuration.
+
+All files are expected to be relative to the basedir. 
 
 ## Manual injection
 
@@ -137,6 +166,33 @@ func main() {
 	
 	config := new(Config)
 	_ = env.MapIni(config, `/config/`)
+}
+```
+## YAML files
+```go
+package main
+
+import (
+	"github.com/vpmv/go-env"
+)
+
+type Config struct {
+    App struct {
+        Host     string   `yaml:"host"`
+        Port     int     `yaml:"port"`
+        Origins  []string `yaml:"allowed_origins"`
+	} `yaml:"app"`
+    Database    struct {
+        Host  string  `yaml:"host"`
+        Port  int     `yaml:"port"`
+        User  string  `yaml:"username"`
+        Pass  string  `yaml:"password"`
+    } `yaml:"database"`
+}
+
+func main() {
+	config := new(Config)
+	err := env.MapEnvYAML(config, `/app/config`, []string{`configuration.yaml`, `configuration.local.yaml`}, `defaults.yaml`)
 }
 ```
 
