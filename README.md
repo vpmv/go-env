@@ -70,7 +70,7 @@ Files overload each other in the following order:
 ### Foreign Anchors
 
 > [!NOTE]
-> The package [goccy/go-yaml](github.com/guccy/go-yaml) supports loading anchors from other files. Although it is designed to support `reference dirories`, we explicitly only support `reference files`, because `reference directories` will evaluate all files in order first. If an unknown reference is found, it'll stop execution.  
+> The package [goccy/go-yaml](github.com/guccy/go-yaml) supports loading anchors from other files. Although it is designed to support `reference directories`, we explicitly only support `reference files`, because `reference directories` will evaluate all files in order first. If an unknown reference is found, it'll stop execution.  
 
 If you want to use YAML anchors from different files, you can supply paths to `reference files` where they're defined. This allows you to easily reuse/overwrite blocks of configuration.
 
