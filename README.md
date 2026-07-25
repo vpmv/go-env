@@ -4,9 +4,8 @@ Go Environment Helper
 [![Go](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/go.json)](https://github.com/vpmv/go-env)
 [![Tests](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/tests.json)](https://github.com/vpmv/go-env/actions)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/coverage.json)](https://github.com/vpmv/go-env/actions)
-[![Lint](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/lint.json)](https://github.com/vpmv/go-env/actions)
-
 [![Code Coverage](https://codecov.io/gh/vpmv/go-env/graph/badge.svg)](https://codecov.io/gh/vpmv/go-env)
+[![Lint](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/lint.json)](https://github.com/vpmv/go-env/actions)
 
 # About
 
