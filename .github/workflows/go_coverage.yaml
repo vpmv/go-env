@@ -1,30 +1,144 @@
-name: "Go Coverage"
+name: Quality
+
 on:
-  pull_request:
   push:
     branches:
       - main
+  pull_request:
+
+permissions:
+  contents: write
 
 jobs:
-  test:
-    name: Run tests and collect coverage
+  quality:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+        uses: actions/checkout@v7
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@v7
         with:
           go-version: stable
           cache: true
 
+      - name: Download dependencies
+        run: go mod download
+
       - name: Run tests
-        run: go test -coverprofile=coverage.txt ./...
+        id: tests
+        continue-on-error: true
+        run: go test ./... -coverprofile=coverage.txt
+
+      - name: Store test status
+        id: test-status
+        if: always()
+        run: |
+          if [ "${{ steps.tests.outcome }}" = "success" ]; then
+            echo "status=passing" >> "$GITHUB_OUTPUT"
+            echo "color=brightgreen" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=failing" >> "$GITHUB_OUTPUT"
+            echo "color=red" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Calculate coverage
+        id: coverage
+        if: always()
+        run: |
+          if [ -f coverage.txt ]; then
+            COVERAGE=$(go tool cover -func=coverage.txt | awk '/^total:/ {print $3}' | tr -d '%')
+          else
+            COVERAGE="0"
+          fi
+
+          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Run golangci-lint
+        id: lint
+        continue-on-error: true
+        uses: golangci/golangci-lint-action@v9
+
+      - name: Store lint status
+        id: lint-status
+        if: always()
+        run: |
+          if [ "${{ steps.lint.outcome }}" = "success" ]; then
+            echo "status=passing" >> "$GITHUB_OUTPUT"
+            echo "color=brightgreen" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=failing" >> "$GITHUB_OUTPUT"
+            echo "color=red" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine Go version
+        id: goversion
+        run: |
+          VERSION=$(go version | awk '{sub(/^go/,"",$3); print $3}')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate badge JSON
+        run: |
+          mkdir -p .github/badges
+
+          jq -n \
+            --arg msg "${{ steps.goversion.outputs.version }}" \
+            '{
+              schemaVersion:1,
+              label:"go",
+              message:$msg,
+              color:"00ADD8",
+              namedLogo:"go"
+            }' > .github/badges/go.json
+
+          jq -n \
+            --arg msg "${{ steps.coverage.outputs.coverage }}%" \
+            '{
+              schemaVersion:1,
+              label:"coverage",
+              message:$msg,
+              color:
+                (if ($msg|sub("%";"")|tonumber) >= 90 then "brightgreen"
+                 elif ($msg|sub("%";"")|tonumber) >= 75 then "green"
+                 elif ($msg|sub("%";"")|tonumber) >= 60 then "yellow"
+                 elif ($msg|sub("%";"")|tonumber) >= 40 then "orange"
+                 else "red"
+                 end),
+              namedLogo:"go"
+            }' > .github/badges/coverage.json
+
+          jq -n '
+            {
+              schemaVersion:1,
+              label:"tests",
+              message:"${{ steps.test-status.outputs.status }}",
+              color: "${{ steps.test-status.outputs.color }}",
+              namedLogo:"githubactions"
+            }' > .github/badges/tests.json
+
+          jq -n '
+            {
+              schemaVersion:1,
+              label:"lint",
+              message:"${{ steps.lint-status.outputs.status }}",
+              color: "${{ steps.lint-status.outputs.color }}",
+              namedLogo:"go"
+            }' > .github/badges/lint.json
+
+      - name: Commit badge updates
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "chore(ci): update coverage badges"
+          file_pattern: .github/badges/*.json
 
       - name: Upload results to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Fail if checks failed
+        if: |
+          steps.tests.outcome == 'failure' ||
+          steps.lint.outcome == 'failure'
+        run: exit 1

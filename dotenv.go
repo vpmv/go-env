@@ -3,6 +3,7 @@ package env
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -22,7 +23,7 @@ func LoadDotEnv(baseDir string, files ...string) {
 		`.env.` + env + `.local`,
 	}, files...)
 	for _, file := range files {
-		if err := godotenv.Overload(safeDir(baseDir) + file); err != nil && !errors.Is(err, os.ErrNotExist) {
+		if err := godotenv.Overload(filepath.Join(baseDir, file)); err != nil && !errors.Is(err, os.ErrNotExist) {
 			panic(`Error loading environment file(s):` + err.Error())
 		}
 	}

@@ -1,0 +1,4 @@
+  global_value1 : value
+
+app:
+  value1: invalid syntax

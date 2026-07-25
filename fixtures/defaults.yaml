@@ -1,0 +1,14 @@
+credentials: &credentials
+  username: user
+  password: secret
+
+connection: &connection
+  host: localhost
+  port: 80
+  ssl: false
+
+# mitigate merge bug (see: https://github.com/goccy/go-yaml/issues/340)
+connectionWithCredentials: &connectionWithCredentials
+  <<: *connection
+  username: user
+  password: secret
