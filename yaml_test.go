@@ -45,9 +45,9 @@ type testYamlAppConfig struct {
 	GlobalValue string                  `yaml:"global_value1"`
 }
 
-func TestMapEnvYAML(t *testing.T) {
+func TestMapYAML(t *testing.T) {
 	s := new(testYamlAppConfig)
-	err := MapEnvYAML(s, `fixtures`)
+	err := MapYAML(s, `fixtures`)
 	assert.NoError(t, err)
 
 	assert.Equal(t, `earth`, s.GlobalValue)
@@ -59,7 +59,7 @@ func TestMapEnvYAML(t *testing.T) {
 	SetEnv(true, Testing)
 
 	s = new(testYamlAppConfig)
-	err = MapEnvYAML(s, `fixtures`)
+	err = MapYAML(s, `fixtures`)
 	assert.NoError(t, err)
 
 	assert.Equal(t, `world`, s.GlobalValue)
@@ -71,9 +71,9 @@ func TestMapEnvYAML(t *testing.T) {
 	_ = os.Unsetenv(`ENV`)
 }
 
-func TestMapEnvYAMLWithReferences(t *testing.T) {
+func TestMapYAMLWithReferences(t *testing.T) {
 	s := new(testYamlAppConfig)
-	err := MapEnvYAMLWithReferences(s, `fixtures`, []string{`defaults.yaml`})
+	err := MapYAMLWithReferences(s, `fixtures`, []string{`defaults.yaml`})
 	assert.NoError(t, err)
 
 	assert.Equal(t, `earth`, s.GlobalValue)
@@ -92,7 +92,7 @@ func TestMapEnvYAMLWithReferences(t *testing.T) {
 	SetEnv(true, Staging)
 
 	s = new(testYamlAppConfig)
-	err = MapEnvYAMLWithReferences(s, `fixtures`, []string{`defaults.yaml`})
+	err = MapYAMLWithReferences(s, `fixtures`, []string{`defaults.yaml`})
 	assert.NoError(t, err)
 
 	assert.Equal(t, `world`, s.GlobalValue)
@@ -109,10 +109,56 @@ func TestMapEnvYAMLWithReferences(t *testing.T) {
 
 func TestMapYAML_Errors(t *testing.T) {
 	s := new(testYamlAppConfig)
-	err := MapYAML(s, `fixtures`, []string{`illegal_character.yaml`})
+	err := mapYAML(s, `fixtures`, []string{`illegal_character.yaml`})
 	assert.Error(t, err)
 
 	fileSystem = new(testFS)
-	err = MapYAML(s, `fixtures`, []string{`void.yaml`})
+	err = mapYAML(s, `fixtures`, []string{`void.yaml`})
+	assert.Error(t, err)
+
+	// reset env
+	fileSystem = new(osFileSystem)
+}
+
+func TestLoadYAML(t *testing.T) {
+	err := LoadYAML(`fixtures`)
+	assert.NoError(t, err)
+
+	assert.Equal(t, `earth`, os.Getenv(`GLOBAL_VALUE1`))
+	assert.Equal(t, `foo`, os.Getenv(`APP_VALUE1`))
+	assert.Equal(t, `emmentaler;gouda;roquefort`, os.Getenv(`APP_VALUE3`))
+	assert.Equal(t, `oof`, os.Getenv(`APP_SECTION_VALUE1`))
+	assert.Equal(t, `localhost`, os.Getenv(`DATABASE_HOST`))
+
+	assert.Equal(t, `cheese;cake;gherkin`, os.Getenv(`LIST[0]`))
+	assert.Equal(t, `bread;wine;prayer`, os.Getenv(`LIST[1]`))
+
+	assert.Equal(t, []string{`bread`, `wine`, `prayer`}, MustStringSlice(`LIST[1]`))
+
+	assert.Equal(t, `postgres`, os.Getenv(`LISTMAP[1]_HOST`))
+	assert.Equal(t, `5432`, os.Getenv(`LISTMAP[1]_PORT`))
+
+	// reset env
+	_ = os.Unsetenv(`ENV`)
+	_ = os.Unsetenv(`GLOBAL_VALUE1`)
+	_ = os.Unsetenv(`APP_VALUE1`)
+	_ = os.Unsetenv(`APP_VALUE2`)
+	_ = os.Unsetenv(`APP_VALUE3`)
+	_ = os.Unsetenv(`APP_SECTION_VALUE1`)
+	_ = os.Unsetenv(`APP_SECTION_VALUE2`)
+	_ = os.Unsetenv(`DATABASE_HOST`)
+	_ = os.Unsetenv(`DATABASE_PORT`)
+	_ = os.Unsetenv(`DATABASE_USER`)
+	_ = os.Unsetenv(`DATABASE_PASSWORD`)
+	_ = os.Unsetenv(`LIST[0]`)
+	_ = os.Unsetenv(`LIST[1]`)
+	_ = os.Unsetenv(`LISTMAP[0]_HOST`)
+	_ = os.Unsetenv(`LISTMAP[0]_PORT`)
+	_ = os.Unsetenv(`LISTMAP[1]_HOST`)
+	_ = os.Unsetenv(`LISTMAP[1]_PORT`)
+}
+
+func TestLoadYAML_Errors(t *testing.T) {
+	err := LoadYAML(`fixtures`, `illegal_character.yaml`)
 	assert.Error(t, err)
 }
