@@ -128,9 +128,12 @@ func main() {
 	host := env.GetString(`APP_HOST`, `localhost`)
 	port := env.GetInt(`APP_PORT`, 8080)
 
-	fuego.NewServer(
+	server := fuego.NewServer(
 		fuego.WithAddr(fmt.Sprintf("%s:%d", host, port))
 	)
+	fuego.Use(server, cors.New(cors.Options{
+		AllowedOrigins: env.GetStringSlice(`APP_ALLOWED_ORIGINS`, []string{`*`}),
+	}))
 }
 ````
 
@@ -168,6 +171,42 @@ func main() {
 }
 ```
 ## YAML files
+
+### Parse YAML to environment
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/go-fuego/fuego"
+	"github.com/vpmv/go-env"
+)
+
+func main() {
+	env.LoadYAML(`/config`)
+	host := env.GetString(`APP_HOST`, `localhost`)
+	port := env.GetInt(`APP_PORT`, 8080)
+	
+	mysql := storage.NewClient(
+		env.MustString(`DATABASE[0]_HOST`),
+		env.MustInt(`DATABASE[0]_PORT`),
+    )
+	redis := storage.NewClient(
+		env.MustString(`DATABASE[1]_HOST`),
+		env.MustInt(`DATABASE[1]_PORT`),
+    )
+	
+	server := fuego.NewServer(
+		fuego.WithAddr(fmt.Sprintf("%s:%d", host, port))
+	)
+	fuego.Use(server, cors.New(cors.Options{
+		AllowedOrigins: env.GetStringSlice(`APP_ALLOWED_ORIGINS`, []string{`*`}),
+	}))
+}
+````
+
+### Map environment YAML to struct
 ```go
 package main
 
@@ -218,5 +257,6 @@ func main() {
 	
 	env.SetDelimiter(`;`) // reset to default delimiter 
 	origins := env.GetStringSlice(`ALLOWED_ORIGINS`, []string{`*`})
+	// []string{`10.0.0.0/8`, `192.168.0.0/16`}
 }
 ```
