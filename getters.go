@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 )
 
 // Has checks if the environment variable exists
@@ -76,7 +75,7 @@ func GetStringSlice(key string, defaultValue []string) []string {
 		return defaultValue
 	}
 
-	s := strings.Split(v, delimiter)
+	s := stringer.Split(v)
 	return s
 }
 
@@ -89,7 +88,7 @@ func GetIntSlice(key string, defaultValue []int) []int {
 		return defaultValue
 	}
 
-	s := strings.Split(v, delimiter)
+	s := stringer.Split(v)
 	o := make([]int, len(s))
 	for i := range s {
 		iv, _ := strconv.Atoi(s[i])
@@ -145,7 +144,7 @@ func MustBool(key string) bool {
 // MustStringSlice - get string slice or panic
 func MustStringSlice(key string) []string {
 	v := MustString(key)
-	return strings.Split(v, delimiter)
+	return stringer.Split(v)
 }
 
 // MustIntSlice - get integer slice or panic

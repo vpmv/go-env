@@ -8,8 +8,6 @@ import (
 )
 
 func TestSetter(t *testing.T) {
-	assert.True(t, true, `Setter should be true`)
-
 	Set(`TEST_VAL`, `test`)
 	assert.Equal(t, `test`, os.Getenv(`TEST_VAL`))
 
