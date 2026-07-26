@@ -70,7 +70,7 @@ You can also map your (overloaded) files directly to a struct using `MapYAML()`,
 > [!NOTE]
 > The package [goccy/go-yaml](github.com/guccy/go-yaml) supports loading anchors from other files. Although it is designed to support `reference directories`, we explicitly only support `reference files`, because `reference directories` will evaluate all files consecutively prior to parsing. If an unknown reference is found, it'll stop execution.  
 
-If you want to use YAML anchors defined in different files, you can supply paths these `reference files`. This allows you to easily reuse/overwrite blocks of configuration.
+If you want to use YAML anchors defined in different files, you can supply paths to these `reference files`. This allows you to easily reuse/overwrite blocks of configuration.
 
 Related functions are: 
 - LoadYAMLWithReferences
@@ -80,7 +80,7 @@ All files are expected to be relative to the basedir.
 
 ## Manual injection
 
-You can inject variables using the `Set()` function. This supports all aforementioned basic data types.
+You can inject variables using the `Set()` function. This supports all basic data types such as strings, integers, booleans, floats, and slices.
 
 # Examples
 
