@@ -14,8 +14,6 @@ This package provides a simple way to load environment variables from a variety 
 - .ini 
 - .yaml
 
-It supports basic value types such as strings, integers, booleans, floats, and slices.
-
 ## Global application environment
 
 The application uses a global environment variable for the general application environment: `ENV`.
