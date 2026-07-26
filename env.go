@@ -2,14 +2,16 @@ package env
 
 import (
 	"os"
+
+	"github.com/vpmv/go-env/internal/format"
 )
 
-// Slice-type word-separation delimiter
-var delimiter = ";"
+var stringer = format.NewStringFormatter(format.WithDelimiter(`;`))
 
-// SetDelimiter sets the delimiter used in slice-types
+// SetDelimiter sets the delimiter used in slice-types.
+// Side effect: Sets new string formatter instance
 func SetDelimiter(d string) {
-	delimiter = d
+	stringer = format.NewStringFormatter(format.WithDelimiter(d))
 }
 
 type Environment string
