@@ -56,8 +56,7 @@ You can also map your (overloaded) files directly to a struct using `MapIni()`, 
 
 ## YAML
 
-This package also provides a simple wrapper [goccy/go-yaml](github.com/guccy/go-yaml) around to load environment variables from .yaml files. 
-This allows you to map YAML into your structs, with the support of anchors/references.
+This package supports loading environment variables from .yaml files, using [goccy/go-yaml](https://github.com/goccy/go-yaml) as the file processor, with the support of YAML anchors.
 
 Files overload each other in the following order:
 - env.yaml
@@ -65,15 +64,21 @@ Files overload each other in the following order:
 - env.<app_env>.yaml
 - env.<app_env>.local.yaml
 - <custom_file>
+  
+You can also map your (overloaded) files directly to a struct using `MapYAML()`, where this package provides itself as a simple wrapper.
 
 ### Foreign Anchors
 
 > [!NOTE]
 > The package [goccy/go-yaml](github.com/guccy/go-yaml) supports loading anchors from other files. Although it is designed to support `reference directories`, we explicitly only support `reference files`, because `reference directories` will evaluate all files in order first. If an unknown reference is found, it'll stop execution.  
 
-If you want to use YAML anchors from different files, you can supply paths to `reference files` where they're defined. This allows you to easily reuse/overwrite blocks of configuration.
+If you want to use YAML anchors defined in different files, you can supply paths these `reference files`. This allows you to easily reuse/overwrite blocks of configuration.
 
-All files are expected to be relative to the basedir. 
+Related functions are: 
+- LoadYAMLWithReferences
+- MapYAMLWithReferences
+
+All files are expected to be relative to the basedir.
 
 ## Manual injection
 
