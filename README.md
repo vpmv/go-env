@@ -37,6 +37,8 @@ Feel free to use a custom environment type, fitting your application's needs.
 
 You can inject variables using the `Set()` function. This supports all stringable data types such as strings, integers, booleans, floats, and slices.
 
+See [Working with slices](#working-with-slices) for a short example.
+
 ## DotEnv
 
 Import: `github.com/vpmv/go-env/dotenv`
@@ -119,6 +121,42 @@ func main() {
 	if env.Has(`DATABASE_SEED`) {
 		// ...
     }
+}
+```
+
+### Working with slices
+
+Slice values are separated with a semi-colon (`;`) by default. You can override this behaviour using:
+`env.SetDelimiter(",")"`. 
+
+> [!NOTE] 
+> Setting the delimiter will affect all subsequent operations. You must explicitly set it before parsing data or reading files, and (re)set it according to the desired output. 
+
+```go
+package main
+
+import (
+	"github.com/vpmv/go-env"
+)
+
+func main() {
+	env.Set(`ALLOWED_ORIGINS`, []string{`10.0.0.0/8`, `192.168.0.0/16`})
+	//  ALLOWED_ORIGINS=10.0.0.0/8;192.168.0.0/16
+	
+	// specify a custom delimiter for slice-types
+	// NOTE: the delimiter remains in memory until changed
+	env.SetDelimiter(`,`)
+	env.Set(`NUMBERS`, []int{101,202,303})
+	//  NUMBERS=101,202,303
+	
+	// without resetting the delimiter, you'll get a single-value slice
+	origins := env.GetStringSlice(`ALLOWED_ORIGINS`, []string{`*`})
+	// []string{`10.0.0.0/8,192.168.0.0/16`} 
+	
+	
+	env.SetDelimiter(`;`) // reset to default delimiter 
+	origins := env.GetStringSlice(`ALLOWED_ORIGINS`, []string{`*`})
+	// []string{`10.0.0.0/8`, `192.168.0.0/16`}
 }
 ```
 
@@ -253,32 +291,5 @@ type Config struct {
 func main() {
 	config := new(Config)
 	err := yaml.MapWithReferences(config, `/app/config`, []string{`defaults.yaml`})
-}
-```
-
-
-## Working with slices
-
-```go
-package main
-
-import (
-	"github.com/vpmv/go-env"
-)
-
-func main() {
-	env.Set(`ALLOWED_ORIGINS`, []string{`10.0.0.0/8`, `192.168.0.0/16`})
-	//  ALLOWED_ORIGINS=10.0.0.0/8;192.168.0.0/16
-	
-	// specify a custom delimiter for slice-types
-	// NOTE: the delimiter remains in memory until changed
-	env.SetDelimiter(`,`) 
-	env.Set(`NUMBERS`, []int{101,202,303})
-	//  NUMBERS=101,202,303
-	
-	
-	env.SetDelimiter(`;`) // reset to default delimiter 
-	origins := env.GetStringSlice(`ALLOWED_ORIGINS`, []string{`*`})
-	// []string{`10.0.0.0/8`, `192.168.0.0/16`}
 }
 ```
