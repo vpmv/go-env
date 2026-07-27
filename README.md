@@ -17,7 +17,7 @@ This package provides a simple way to load environment variables from a variety 
 
 ## Global application environment
 
-The package uses a global environment variable for the general application environment; default `ENV`. This can be overridden with the variable of your choosing, e.g.: `env.GlobalEnv = "APP_ENV".
+The package uses a global environment variable for the general application environment; default `ENV`. This can be overridden with the variable of your choosing, e.g.: `env.GlobalEnv = "APP_ENV"`.
 
 The global environment can be set by calling `SetEnv`. Common environment shorthands are automatically parsed. The main environment types are:
 - development
@@ -294,7 +294,7 @@ import (
 type Config struct {
     App struct {
         Host     string   `yaml:"host"`
-        Port     int     `yaml:"port"`
+        Port     int      `yaml:"port"`
         Origins  []string `yaml:"allowed_origins"`
 	} `yaml:"app"`
     Database    struct {
