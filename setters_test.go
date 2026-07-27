@@ -29,6 +29,9 @@ func TestSetter(t *testing.T) {
 	Set(`TEST_VAL`, []string{`foo`, `bar`, `baz`})
 	assert.Equal(t, `foo;bar;baz`, os.Getenv(`TEST_VAL`))
 
+	Set(`TEST_VAL`, []float64{101.011, 202.022, 303.033})
+	assert.Equal(t, `101.011;202.022;303.033`, os.Getenv(`TEST_VAL`))
+
 	Set(`TEST_VAL`, Environment(`magic`))
 	assert.Equal(t, `magic`, os.Getenv(`TEST_VAL`))
 

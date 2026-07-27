@@ -14,7 +14,10 @@ func TestGetString(t *testing.T) {
 	assert.Equal(t, "test_value", GetString(`TEST_VAL`, `different`), `Unexpected value for TEST_VAL`)
 	assert.Equal(t, "test_value", MustString(`TEST_VAL`), `Unexpected value for TEST_VAL`)
 
+	assert.True(t, Has(`TEST_VAL`))
+
 	_ = os.Unsetenv(`TEST_VAL`)
+	assert.False(t, Has(`TEST_VAL`))
 	assert.Panics(t, func() { MustString(`TEST_VAL`) }, `MustString should panic when env var is not set`)
 }
 
@@ -126,6 +129,32 @@ func TestGetIntSlice(t *testing.T) {
 
 	_ = os.Unsetenv(`TEST_VAL`)
 	assert.Panics(t, func() { MustIntSlice(`TEST_VAL`) }, `MustIntSlice should panic when env var is not set`)
+}
+
+func TestGetFloatSlice(t *testing.T) {
+	expected := []float64{101.011, 202.022, 303.033}
+	assert.Equal(t, expected, GetFloatSlice(`TEST_VAL`, expected), `Unexpected value for TEST_VAL`)
+
+	_ = os.Setenv("TEST_VAL", `101.011;202.022;303.033`)
+	assert.Equal(t, expected, GetFloatSlice(`TEST_VAL`, []float64{404}), `Unexpected value for TEST_VAL`)
+	assert.Equal(t, expected, MustFloatSlice(`TEST_VAL`), `Unexpected value for TEST_VAL`)
+
+	// test erroneous values
+	_ = os.Setenv("TEST_VAL", `101.011;aaa;303.033`)
+	expected = []float64{101.011, 0, 303.033}
+	assert.Equal(t, expected, GetFloatSlice(`TEST_VAL`, []float64{404}), `Unexpected value for TEST_VAL`)
+	assert.Panics(t, func() { MustFloatSlice(`TEST_VAL`) }, `MustFloatSlice should panic when value is invalid`)
+
+	_ = os.Setenv("TEST_VAL", `101.011`)
+	expected = []float64{101.011}
+	assert.Equal(t, expected, GetFloatSlice(`TEST_VAL`, []float64{202.022}), `Unexpected value for TEST_VAL`)
+
+	_ = os.Setenv("TEST_VAL", ``)
+	expected = []float64{101.011}
+	assert.Equal(t, expected, GetFloatSlice(`TEST_VAL`, expected), `Unexpected fallback value for TEST_VAL`)
+
+	_ = os.Unsetenv(`TEST_VAL`)
+	assert.Panics(t, func() { MustFloatSlice(`TEST_VAL`) }, `MustFloatSlice should panic when env var is not set`)
 }
 
 func TestDelimiter(t *testing.T) {

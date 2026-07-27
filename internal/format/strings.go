@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var Stringer = NewStringFormatter()
+
 type StringFormatter struct {
 	delimiter string
 }

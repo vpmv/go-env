@@ -1,4 +1,4 @@
-package env
+package yaml
 
 import (
 	"os"
@@ -7,20 +7,23 @@ import (
 	"strings"
 
 	"github.com/goccy/go-yaml"
+	"github.com/vpmv/go-env"
+	"github.com/vpmv/go-env/internal/format"
+	"github.com/vpmv/go-env/internal/fs"
 	"github.com/vpmv/go-env/internal/mapper"
 )
 
-// LoadYAML loads environment variables from YAML files
+// Load loads environment variables from YAML files
 //
 // The order of the files is important; subsequent files will overload previously set variables.
 // The default order is: env.yaml, env.local.yaml, env.<env>.yaml, env.<env>.local.yaml
 //
 // All files are expected to be relative to baseDir
-func LoadYAML(baseDir string, files ...string) error {
-	return LoadYAMLWithReferences(baseDir, []string{}, files...)
+func Load(baseDir string, files ...string) error {
+	return LoadWithReferences(baseDir, []string{}, files...)
 }
 
-// LoadYAML loads environment variables from YAML files
+// LoadWithReferences loads environment variables from YAML files
 // Reference files are used to parse YAML anchors within the source files.
 // Reference files should be in order of precedence,
 // i.e. anchors must be defined before they're referenced
@@ -29,20 +32,20 @@ func LoadYAML(baseDir string, files ...string) error {
 // The default order is: env.yaml, env.local.yaml, env.<env>.yaml, env.<env>.local.yaml
 //
 // All files are expected to be relative to baseDir
-func LoadYAMLWithReferences(baseDir string, referenceFiles []string, files ...string) error {
+func LoadWithReferences(baseDir string, referenceFiles []string, files ...string) error {
 	keyName := func(k string) string {
 		re := regexp.MustCompile(`\.+`)
 		return strings.ToUpper(re.ReplaceAllString(k, "_"))
 	}
 
-	SetEnv(false)
-	env := GetEnv().String()
+	env.SetEnv(false)
+	e := env.GetEnv().String()
 
 	files = append([]string{
 		`env.yaml`,
 		`env.local.yaml`,
-		`env.` + env + `.yaml`,
-		`env.` + env + `.local.yaml`,
+		`env.` + e + `.yaml`,
+		`env.` + e + `.local.yaml`,
 	}, files...)
 
 	dest := map[string]interface{}{}
@@ -55,24 +58,24 @@ func LoadYAMLWithReferences(baseDir string, referenceFiles []string, files ...st
 	for k, v := range flatmap {
 		// unless goccy/go-yaml changes type assertion,
 		// mapper.Flatten filters unsupported types and format.ToString returns silent
-		str, _ := stringer.ToString(v)
-		Set(keyName(k), str)
+		str, _ := format.Stringer.ToString(v)
+		env.Set(keyName(k), str)
 	}
 
 	return nil
 }
 
-// mapYAML maps YAML environment files to interface
+// Map maps YAML environment files to interface
 //
 // The order of files is important; subsequent files will overload previously set variables.
 // The default order is: env.yaml, env.local.yaml, env.<env>.yaml, env.<env>.local.yaml
 //
 // All files are expected to be relative to baseDir
-func MapYAML(dest any, baseDir string, files ...string) error {
-	return MapYAMLWithReferences(dest, baseDir, files)
+func Map(dest any, baseDir string, files ...string) error {
+	return MapWithReferences(dest, baseDir, files)
 }
 
-// mapYAML maps YAML environment files to interface.
+// MapWithReferences maps YAML environment files to interface.
 // Reference files are used to parse YAML anchors within the source files.
 // Reference files should be in order of precedence,
 // i.e. anchors must be defined before they're referenced
@@ -81,15 +84,15 @@ func MapYAML(dest any, baseDir string, files ...string) error {
 // The default order is: env.yaml, env.local.yaml, env.<env>.yaml, env.<env>.local.yaml
 //
 // All files are expected to be relative to baseDir
-func MapYAMLWithReferences(dest any, baseDir string, referenceFiles []string, files ...string) error {
-	SetEnv(false)
-	env := GetEnv().String()
+func MapWithReferences(dest any, baseDir string, referenceFiles []string, files ...string) error {
+	env.SetEnv(false)
+	e := env.GetEnv().String()
 
 	files = append([]string{
 		`env.yaml`,
 		`env.local.yaml`,
-		`env.` + env + `.yaml`,
-		`env.` + env + `.local.yaml`,
+		`env.` + e + `.yaml`,
+		`env.` + e + `.local.yaml`,
 	}, files...)
 
 	return mapYAML(dest, baseDir, files, referenceFiles...)
@@ -109,8 +112,8 @@ func mapYAML(dest any, baseDir string, files []string, referenceFiles ...string)
 	}
 
 	for _, file := range files {
-		f, err := fileSystem.Open(filepath.Join(baseDir, file))
-		defer fileSystem.CloseFile(f)
+		f, err := fs.FS().Open(filepath.Join(baseDir, file))
+		defer fs.FS().CloseFile(f)
 
 		if err != nil && os.IsNotExist(err) {
 			continue

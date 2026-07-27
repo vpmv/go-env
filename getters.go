@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/vpmv/go-env/internal/format"
 )
 
 // Has checks if the environment variable exists
@@ -75,7 +77,7 @@ func GetStringSlice(key string, defaultValue []string) []string {
 		return defaultValue
 	}
 
-	s := stringer.Split(v)
+	s := format.Stringer.Split(v)
 	return s
 }
 
@@ -88,10 +90,28 @@ func GetIntSlice(key string, defaultValue []int) []int {
 		return defaultValue
 	}
 
-	s := stringer.Split(v)
+	s := format.Stringer.Split(v)
 	o := make([]int, len(s))
 	for i := range s {
 		iv, _ := strconv.Atoi(s[i])
+		o[i] = iv
+	}
+	return o
+}
+
+// GetFloatSlice - get float64 slice with default fallback
+//
+// may produce zero-values when unable to convert
+func GetFloatSlice(key string, defaultValue []float64) []float64 {
+	v := os.Getenv(key)
+	if v == `` {
+		return defaultValue
+	}
+
+	s := format.Stringer.Split(v)
+	o := make([]float64, len(s))
+	for i := range s {
+		iv, _ := strconv.ParseFloat(s[i], 64)
 		o[i] = iv
 	}
 	return o
@@ -144,7 +164,7 @@ func MustBool(key string) bool {
 // MustStringSlice - get string slice or panic
 func MustStringSlice(key string) []string {
 	v := MustString(key)
-	return stringer.Split(v)
+	return format.Stringer.Split(v)
 }
 
 // MustIntSlice - get integer slice or panic
@@ -155,6 +175,20 @@ func MustIntSlice(key string) []int {
 		iv, err := strconv.Atoi(v[i])
 		if err != nil {
 			panic(fmt.Sprintf(`Invalid integer value for environment variable: %s`, key))
+		}
+		o[i] = iv
+	}
+	return o
+}
+
+// MustFloatSlice - get float64 slice or panic
+func MustFloatSlice(key string) []float64 {
+	v := MustStringSlice(key)
+	o := make([]float64, len(v))
+	for i := range v {
+		iv, err := strconv.ParseFloat(v[i], 64)
+		if err != nil {
+			panic(fmt.Sprintf(`Invalid float value for environment variable: %s (%v)`, key, v[i]))
 		}
 		o[i] = iv
 	}

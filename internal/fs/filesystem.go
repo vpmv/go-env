@@ -1,10 +1,11 @@
-package env
+package fs
 
 import (
 	"io/fs"
 	"os"
 )
 
+// FileSystem - internal FS wrapper
 type FileSystem interface {
 	Open(name string) (fs.File, error)
 	CloseFile(f fs.File)
@@ -21,5 +22,3 @@ func (osFileSystem) CloseFile(f fs.File) {
 		_ = f.Close()
 	}
 }
-
-var fileSystem FileSystem = new(osFileSystem)

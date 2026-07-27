@@ -7,30 +7,51 @@ Go Environment Helper
 [![Code Coverage](https://codecov.io/gh/vpmv/go-env/graph/badge.svg)](https://codecov.io/gh/vpmv/go-env)
 [![Lint](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vpmv/go-env/main/.github/badges/lint.json)](https://github.com/vpmv/go-env/actions)
 
-# About
 
 This package provides a simple way to load environment variables from a variety of files - with default value support - and an atomic API to read and write environment variables. Files supported:
 - .env
 - .ini 
 - .yaml
 
+# Usage
+
 ## Global application environment
 
-The application uses a global environment variable for the general application environment: `ENV`.
-The value can be overwritten by calling `SetEnv`. Common environment shorthands are automatically parsed. The main environment types are:
+The package uses a global environment variable for the general application environment; default `ENV`. This can be overridden with the variable of your choosing, e.g.: `env.GlobalEnv = "APP_ENV"`.
+
+The global environment can be set by calling `SetEnv`. Common environment shorthands are automatically parsed. The main environment types are:
 - development
 - production
 - testing
 - staging
 
-The package comes with some helper functions to check the global environment, e.g. `IsDevelopment()`.
+The package comes with some helper functions to check the global environment, e.g. `IsDevelopment()`, `IsStaging()` et cetera.
+
 Feel free to use a custom environment type, fitting your application's needs.
 
-Note: The default environment is `development`, unless `ENV` is set on machine level.
+> [!Note] 
+> The default environment is `development`, unless `ENV` (<= `env.GlobalVar`) is set on machine level.
+> E.g.: `docker run -e ENV=production my-application`
+
+## API & Manual injection
+
+The package comes with a simple atomic API to get and set environment variables. It supports all stringable data types such as strings, integers, booleans, floats, and slices. 
+
+The API features two types of getters:
+- `Get<T>(key, default_value)` <br>
+This is the safest way to handle non-mandatory environment variables, using sensible default values 
+- `Must<T>(key)` <br>
+This is the quick short-hand way to force environment variables. This will throw a system level panic if the variable is unset or unparsable.
+
+You can inject variables using the `Set()` function, which can come in handy when you need specific validation / variables inside your libraries.
+
+See [Basic example](#basic-example) for a short example on how to work with the API.
 
 ## DotEnv
 
-This package relies on [joho/godotenv](https://github.com/joho/godotenv) to load environment variables from .env files, adding some syntactic sugar to make it easier to overload (custom) files into your application environment.
+Import: `github.com/vpmv/go-env/dotenv`
+
+This library supports loading environment variables from .env files, using [joho/godotenv](https://github.com/joho/godotenv) as the file processor, making it easier to overload (custom) files into your application environment.
 
 Files overload each other in the following order:
 - .env
@@ -41,7 +62,9 @@ Files overload each other in the following order:
 
 ## INI
 
-This package supports loading environment variables from .ini files, using [gopkg.in/ini.v1](https://gopkg.in/ini.v1) as the file processor.
+Import: `github.com/vpmv/go-env/ini`
+
+This library supports loading environment variables from .ini files, using [gopkg.in/ini.v1](https://gopkg.in/ini.v1) as the file processor.
 
 Files overload each other in the following order:
 - env.ini
@@ -50,11 +73,13 @@ Files overload each other in the following order:
 - env.<app_env>.local.ini
 - <custom_file>
 
-You can also map your (overloaded) files directly to a struct using `MapIni()`, or access the `*ini.File` object using `LoadIniFile()`.
+You can also map your (overloaded) files directly to a struct using `Map()`, or access the `*ini.File` object using `LoadFile()`.
 
 ## YAML
 
-This package supports loading environment variables from .yaml files, using [goccy/go-yaml](https://github.com/goccy/go-yaml) as the file processor, with the support of YAML anchors.
+Import: `github.com/vpmv/go-env/yaml`
+
+This library supports loading environment variables from .yaml files, using [goccy/go-yaml](https://github.com/goccy/go-yaml) as the file processor, with the support of YAML anchors.
 
 Files overload each other in the following order:
 - env.yaml
@@ -63,7 +88,7 @@ Files overload each other in the following order:
 - env.<app_env>.local.yaml
 - <custom_file>
   
-You can also map your (overloaded) files directly to a struct using `MapYAML()`, where this package provides itself as a simple wrapper.
+You can also map your (overloaded) files directly to a struct using `Map()`, or `MapWithReferences()`.
 
 ### Foreign Anchors
 
@@ -73,14 +98,10 @@ You can also map your (overloaded) files directly to a struct using `MapYAML()`,
 If you want to use YAML anchors defined in different files, you can supply paths to these `reference files`. This allows you to easily reuse/overwrite blocks of configuration.
 
 Related functions are: 
-- LoadYAMLWithReferences
-- MapYAMLWithReferences
+- `yaml.LoadWithReferences` - loading contents into the environment
+- `yaml.MapWithReferences` - mapping contents to an interface
 
 All files are expected to be relative to the basedir.
-
-## Manual injection
-
-You can inject variables using the `Set()` function. This supports all basic data types such as strings, integers, booleans, floats, and slices.
 
 # Examples
 
@@ -90,10 +111,11 @@ package main
 
 import (
     "github.com/vpmv/go-env"	
+    "github.com/vpmv/go-env/dotenv"	
 )
 
 func main() {
-    env.LoadDotEnv(`/config/`)
+    dotenv.Load(`/config/`)
     
     if env.IsDevelopment() {
         env.Set(`SEED_DB`, true)
@@ -104,9 +126,45 @@ func main() {
     // ...
 	
 	// check if variable exists
-	if env.Has(`DATABASE_SEED`) {
+	if env.Has(`DATABASE_MIGRATE`) {
 		// ...
     }
+}
+```
+
+### Working with slices
+
+Slice values are separated with a semi-colon (`;`) by default. You can override this behaviour using:
+`env.SetDelimiter(",")`. 
+
+> [!NOTE] 
+> Setting the delimiter will affect all subsequent operations. You must explicitly set it before parsing data or reading files, and (re)set it according to the desired output. 
+
+```go
+package main
+
+import (
+	"github.com/vpmv/go-env"
+)
+
+func main() {
+	env.Set(`ALLOWED_ORIGINS`, []string{`10.0.0.0/8`, `192.168.0.0/16`})
+	//  ALLOWED_ORIGINS=10.0.0.0/8;192.168.0.0/16
+	
+	// specify a custom delimiter for slice-types
+	// NOTE: the delimiter remains in memory until changed
+	env.SetDelimiter(`,`)
+	env.Set(`NUMBERS`, []int{101,202,303})
+	//  NUMBERS=101,202,303
+	
+	// without resetting the delimiter, you'll get a single-value slice
+	origins := env.GetStringSlice(`ALLOWED_ORIGINS`, []string{`*`})
+	// []string{`10.0.0.0/8;192.168.0.0/16`} 
+	
+	
+	env.SetDelimiter(`;`) // reset to default delimiter 
+	origins := env.GetStringSlice(`ALLOWED_ORIGINS`, []string{`*`})
+	// []string{`10.0.0.0/8`, `192.168.0.0/16`}
 }
 ```
 
@@ -122,12 +180,13 @@ import (
 
 	"github.com/go-fuego/fuego"
 	"github.com/vpmv/go-env"
+	"github.com/vpmv/go-env/ini"
 )
 
 func main() {
 	env.SetEnv(true, `app`) // set custom ENV
 	
-	env.LoadIni(`/config/`)
+	ini.Load(`/config/`)
 	host := env.GetString(`APP_HOST`, `localhost`)
 	port := env.GetInt(`APP_PORT`, 8080)
 
@@ -146,6 +205,7 @@ package main
 
 import (
 	"github.com/vpmv/go-env"
+	"github.com/vpmv/go-env/ini"
 )
 
 type Config struct {
@@ -167,15 +227,24 @@ type Config struct {
 }
 
 func main() {
-	env.SetEnv(true, `app`) // set custom ENV
+	env.SetEnv(true, `emergency`) // set custom ENV
 	
 	config := new(Config)
-	_ = env.MapIni(config, `/config/`)
+	_ = ini.Map(config, `/config/`)
 }
 ```
 ## YAML files
 
 ### Parse YAML to environment
+
+Because YAML supports arrays, environment variables are set with a logical iterator. For example [env.yaml](fixtures/env.yaml) parses to:
+- LIST[0] => `cheese;cake;gherkin`
+- LIST[1]  => `bread;wine;prayer`
+- LISTMAP[0]_HOST => `mysql`
+- LISTMAP[0]_PORT => `3306`
+- LISTMAP[1]_HOS  => `postgres`
+- LISTMAP[1]_PORT => `5432`
+
 ```go
 package main
 
@@ -184,10 +253,14 @@ import (
 
 	"github.com/go-fuego/fuego"
 	"github.com/vpmv/go-env"
+	"github.com/vpmv/go-env/yaml"
 )
 
 func main() {
-	env.LoadYAML(`/config`)
+	err := yaml.Load(`/config`)
+	if err != nil {
+		// ...
+    }
 	host := env.GetString(`APP_HOST`, `localhost`)
 	port := env.GetInt(`APP_PORT`, 8080)
 	
@@ -215,12 +288,13 @@ package main
 
 import (
 	"github.com/vpmv/go-env"
+	"github.com/vpmv/go-env/yaml"
 )
 
 type Config struct {
     App struct {
         Host     string   `yaml:"host"`
-        Port     int     `yaml:"port"`
+        Port     int      `yaml:"port"`
         Origins  []string `yaml:"allowed_origins"`
 	} `yaml:"app"`
     Database    struct {
@@ -233,33 +307,6 @@ type Config struct {
 
 func main() {
 	config := new(Config)
-	err := env.MapEnvYAMLWithReferences(config, `/app/config`, []string{`defaults.yaml`})
-}
-```
-
-
-## Working with slices
-
-```go
-package main
-
-import (
-	"github.com/vpmv/go-env"
-)
-
-func main() {
-	env.Set(`ALLOWED_ORIGINS`, []string{`10.0.0.0/8`, `192.168.0.0/16`})
-	//  ALLOWED_ORIGINS=10.0.0.0/8;192.168.0.0/16
-	
-	// specify a custom delimiter for slice-types
-	// NOTE: the delimiter remains in memory until changed
-	env.SetDelimiter(`,`) 
-	env.Set(`NUMBERS`, []int{101,202,303})
-	//  NUMBERS=101,202,303
-	
-	
-	env.SetDelimiter(`;`) // reset to default delimiter 
-	origins := env.GetStringSlice(`ALLOWED_ORIGINS`, []string{`*`})
-	// []string{`10.0.0.0/8`, `192.168.0.0/16`}
+	err := yaml.MapWithReferences(config, `/app/config`, []string{`defaults.yaml`})
 }
 ```

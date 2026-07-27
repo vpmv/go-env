@@ -1,4 +1,4 @@
-package env
+package ini
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/vpmv/go-env"
 	"gopkg.in/ini.v1"
 )
 
@@ -38,53 +39,53 @@ func mapIniToEnv(data *ini.File) {
 			} else {
 				k = keyName(section.Name() + `_` + key.Name())
 			}
-			Set(k, key.Value())
+			env.Set(k, key.Value())
 		}
 	}
 }
 
-// LoadIni loads environment variables from ini files
+// Load loads environment variables from ini files
 //
 // The order of the files is important; subsequent files will overload previously set variables.
 // The default order is: env.ini, env.local.ini, env.<env>.ini, env.<env>.local.ini
-func LoadIni(baseDir string, files ...string) {
-	data, err := LoadIniFile(baseDir, files...)
+func Load(baseDir string, files ...string) {
+	data, err := LoadFile(baseDir, files...)
 	if err != nil {
 		panic(`Error processing INI file: ` + err.Error())
 	}
 	mapIniToEnv(data)
 }
 
-// LoadIniFile loads variables from environment ini files
+// LoadFile loads variables from environment ini files
 // returning *ini.File
 //
 // The order of the files is important; subsequent files will overload previously set variables.
 // The default order is: env.ini, env.local.ini, env.<env>.ini, env.<env>.local.ini
-func LoadIniFile(baseDir string, files ...string) (*ini.File, error) {
-	SetEnv(false)
-	env := GetEnv().String()
+func LoadFile(baseDir string, files ...string) (*ini.File, error) {
+	env.SetEnv(false)
+	e := env.GetEnv().String()
 
 	files = append([]string{
 		`env.ini`,
 		`env.local.ini`,
-		`env.` + env + `.ini`,
-		`env.` + env + `.local.ini`,
+		`env.` + e + `.ini`,
+		`env.` + e + `.local.ini`,
 	}, files...)
 
 	return loadIniData(baseDir, files)
 }
 
-// MapIni maps environment ini files to user-defined interface
+// Map maps environment ini files to user-defined interface
 //
 // The order of the files is important; subsequent files will overload previously set variables.
 // The default order is: env.ini, env.local.ini, env.<env>.ini, env.<env>.local.ini
-func MapIni(dest any, baseDir string, files ...string) error {
+func Map(dest any, baseDir string, files ...string) error {
 	var (
 		data *ini.File
 		err  error
 	)
 
-	data, err = LoadIniFile(baseDir, files...)
+	data, err = LoadFile(baseDir, files...)
 	if err != nil {
 		return err
 	}
