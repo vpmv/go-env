@@ -159,7 +159,7 @@ func main() {
 	
 	// without resetting the delimiter, you'll get a single-value slice
 	origins := env.GetStringSlice(`ALLOWED_ORIGINS`, []string{`*`})
-	// []string{`10.0.0.0/8,192.168.0.0/16`} 
+	// []string{`10.0.0.0/8;192.168.0.0/16`} 
 	
 	
 	env.SetDelimiter(`;`) // reset to default delimiter 
@@ -236,6 +236,15 @@ func main() {
 ## YAML files
 
 ### Parse YAML to environment
+
+Because YAML supports arrays, environment variables are set with a logical iterator. For example [env.yaml](fixtures/env.yaml) parses to:
+- LIST[0] => `cheese;cake;gherkin`
+- LIST[1]  => `bread;wine;prayer`
+- LISTMAP[0]_HOST => `mysql`
+- LISTMAP[0]_PORT => `3306`
+- LISTMAP[1]_HOS  => `postgres`
+- LISTMAP[1]_PORT => `5432`
+
 ```go
 package main
 
