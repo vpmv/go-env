@@ -33,11 +33,19 @@ Feel free to use a custom environment type, fitting your application's needs.
 > The default environment is `development`, unless `ENV` (<= `env.GlobalVar`) is set on machine level.
 > E.g.: `docker run -e ENV=production my-application`
 
-## Manual injection
+## API & Manual injection
 
-You can inject variables using the `Set()` function. This supports all stringable data types such as strings, integers, booleans, floats, and slices.
+The package comes with a simple atomic API to get and set environment variables. It supports all stringable data types such as strings, integers, booleans, floats, and slices. 
 
-See [Working with slices](#working-with-slices) for a short example.
+The API features two types of getters:
+- `Get<T>(key, default_value)` <br>
+This is the safest way to handle non-mandatory environment variables, using sensible default values 
+- `Must<T>(key)` <br>
+This is the quick short-hand way to force environment variables. This will throw a system level panic if the variable is unset or unparsable.
+
+You can inject variables using the `Set()` function, which can come in handy when you need specific validation / variables inside your libraries.
+
+See [Basic example](#basic-example) for a short example on how to work with the API.
 
 ## DotEnv
 
@@ -118,7 +126,7 @@ func main() {
     // ...
 	
 	// check if variable exists
-	if env.Has(`DATABASE_SEED`) {
+	if env.Has(`DATABASE_MIGRATE`) {
 		// ...
     }
 }
