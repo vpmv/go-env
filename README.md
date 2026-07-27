@@ -135,7 +135,7 @@ func main() {
 ### Working with slices
 
 Slice values are separated with a semi-colon (`;`) by default. You can override this behaviour using:
-`env.SetDelimiter(",")"`. 
+`env.SetDelimiter(",")`. 
 
 > [!NOTE] 
 > Setting the delimiter will affect all subsequent operations. You must explicitly set it before parsing data or reading files, and (re)set it according to the desired output. 
