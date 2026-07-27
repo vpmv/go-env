@@ -1,10 +1,11 @@
-package env
+package ini
 
 import (
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/vpmv/go-env"
 )
 
 type testIniAppConfig struct {
@@ -26,7 +27,7 @@ type testIniAppConfig struct {
 
 func TestLoadIni(t *testing.T) {
 	// should set env to "development" and only load "env.ini"
-	LoadIni(`fixtures`)
+	Load(`../fixtures`)
 
 	// no section
 	assert.Equal(t, `earth`, os.Getenv(`GLOBAL_VALUE1`), `GLOBAL_VALUE1 should be "earth"`)
@@ -41,28 +42,28 @@ func TestLoadIni(t *testing.T) {
 	// [database] section
 	assert.Equal(t, `3306`, os.Getenv(`DATABASE_PORT`), `DATABASE_PORT should be "3306"`)
 
-	unsertDotEnvVars()
+	unsetEnvVars()
 
-	SetEnv(true, Testing)
+	env.SetEnv(true, env.Testing)
 	// should set env to "testing" and load "env.ini" & "env.testing.ini"
-	LoadIni(`fixtures`)
+	Load(`../fixtures`)
 	assert.Equal(t, `foobar`, os.Getenv(`APP_SECTION_VALUE1`), `APP_SECTION_VALUE1 should be "foobar"`)
 	assert.Equal(t, `user2`, os.Getenv(`DATABASE_USER`), `DATABASE_USER should be "user2"`)
 	assert.Equal(t, `verysecret`, os.Getenv(`DATABASE_PASSWORD`), `DATABASE_PASSWORD should be "verysecret"`)
 
-	unsertDotEnvVars()
+	unsetEnvVars()
 }
 
 func TestLoadIniPanic(t *testing.T) {
 	assert.Panics(t, func() {
-		LoadIni(`fixtures`, `illegal_character.ini`)
+		Load(`../fixtures`, `illegal_character.ini`)
 	})
-	unsertDotEnvVars()
+	unsetEnvVars()
 }
 
 func TestMapIni(t *testing.T) {
 	config := new(testIniAppConfig)
-	if err := MapIni(config, `fixtures`); err != nil {
+	if err := Map(config, `../fixtures`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -78,10 +79,10 @@ func TestMapIni(t *testing.T) {
 	assert.Equal(t, `user1`, config.Database.User, `Database.User should be "user"`)
 	assert.Equal(t, `secret`, config.Database.Password, `Database.Password should be "secret"`)
 
-	SetEnv(true, Testing)
+	env.SetEnv(true, env.Testing)
 
 	config = new(testIniAppConfig)
-	if err := MapIni(config, `fixtures`); err != nil {
+	if err := Map(config, `../fixtures`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -89,33 +90,38 @@ func TestMapIni(t *testing.T) {
 	assert.Equal(t, `user2`, config.Database.User, `Database.User should be "user2"`)
 	assert.Equal(t, `verysecret`, config.Database.Password, `Database.Password should be "verysecret"`)
 
-	unsetIniEnvVars()
+	unsetEnvVars()
 }
 
 func TestMapIniError(t *testing.T) {
 	config := new(testIniAppConfig)
-	err := MapIni(config, `fixtures`, `illegal_character.ini`)
+	err := Map(config, `../fixtures`, `illegal_character.ini`)
 	if err == nil {
 		assert.Fail(t, `MapIni should return error`)
 	}
 
 	illegalConfig := []string{}
-	err = MapIni(illegalConfig, `fixtures`)
+	err = Map(illegalConfig, `../fixtures`)
 	if err == nil {
 		assert.Fail(t, `MapIni should return error`)
 	}
 
-	unsetIniEnvVars()
+	unsetEnvVars()
 }
 
 func TestEmptyIni(t *testing.T) {
-	LoadIni(`non_existent`)
-	assert.False(t, Has(`APP_VALUE1`), `environment should not exist`)
-	unsetIniEnvVars()
+	Load(`non_existent`)
+	assert.False(t, env.Has(`APP_VALUE1`), `environment should not exist`)
+	unsetEnvVars()
 }
 
-func unsetIniEnvVars() {
+func unsetEnvVars() {
 	_ = os.Unsetenv(`ENV`)
+	_ = os.Unsetenv(`VALUE1`)
+	_ = os.Unsetenv(`VALUE2`)
+	_ = os.Unsetenv(`SECTION1_VALUE`)
+	_ = os.Unsetenv(`SECTION2_VALUE`)
+
 	_ = os.Unsetenv(`GLOBAL_VALUE1`)
 	_ = os.Unsetenv(`APP_VALUE1`)
 	_ = os.Unsetenv(`APP_VALUE2`)

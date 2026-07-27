@@ -6,12 +6,12 @@ import (
 	"github.com/vpmv/go-env/internal/format"
 )
 
-var stringer = format.NewStringFormatter(format.WithDelimiter(`;`))
+var GlobalEnv = `ENV`
 
 // SetDelimiter sets the delimiter used in slice-types.
 // Side effect: Sets new string formatter instance
 func SetDelimiter(d string) {
-	stringer = format.NewStringFormatter(format.WithDelimiter(d))
+	format.Stringer = format.NewStringFormatter(format.WithDelimiter(d))
 }
 
 type Environment string
@@ -28,15 +28,16 @@ const (
 )
 
 var commonEnvs = map[string]Environment{
-	`dev`:   Development,
-	`devel`: Development,
-	`prod`:  Production,
-	`test`:  Testing,
-	`stage`: Staging,
+	`dev`:     Development,
+	`devel`:   Development,
+	`develop`: Development,
+	`prod`:    Production,
+	`test`:    Testing,
+	`stage`:   Staging,
 }
 
 func GetEnv() Environment {
-	return Environment(os.Getenv(`ENV`))
+	return Environment(os.Getenv(GlobalEnv))
 }
 
 func ParseEnv(env Environment) Environment {
@@ -51,16 +52,16 @@ func SetEnv(override bool, env ...Environment) {
 		return
 	}
 
-	if len(env) != 0 {
-		_ = os.Setenv(`ENV`, ParseEnv(env[0]).String())
+	if len(env) > 0 {
+		_ = os.Setenv(GlobalEnv, ParseEnv(env[0]).String())
 	} else {
-		_ = os.Setenv(`ENV`, Development.String())
+		_ = os.Setenv(GlobalEnv, Development.String())
 	}
 }
 
 // IsEnv - test if the environment is <environment>
 func IsEnv(environment Environment) bool {
-	return GetString(`ENV`, Development.String()) == environment.String()
+	return GetString(GlobalEnv, Development.String()) == environment.String()
 }
 
 // IsDevelopment - test if the environment is development

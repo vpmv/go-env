@@ -1,4 +1,4 @@
-package env
+package yaml
 
 import (
 	"io/fs"
@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/vpmv/go-env"
+	fsys "github.com/vpmv/go-env/internal/fs"
 )
 
 type testFS struct{}
@@ -47,7 +49,7 @@ type testYamlAppConfig struct {
 
 func TestMapYAML(t *testing.T) {
 	s := new(testYamlAppConfig)
-	err := MapYAML(s, `fixtures`)
+	err := Map(s, `../fixtures`)
 	assert.NoError(t, err)
 
 	assert.Equal(t, `earth`, s.GlobalValue)
@@ -56,10 +58,10 @@ func TestMapYAML(t *testing.T) {
 	assert.Equal(t, []string{`emmentaler`, `gouda`, `roquefort`}, s.App.Value3)
 	assert.Equal(t, int64(123), s.App.Section.Value2)
 
-	SetEnv(true, Testing)
+	env.SetEnv(true, env.Testing)
 
 	s = new(testYamlAppConfig)
-	err = MapYAML(s, `fixtures`)
+	err = Map(s, `../fixtures`)
 	assert.NoError(t, err)
 
 	assert.Equal(t, `world`, s.GlobalValue)
@@ -73,7 +75,7 @@ func TestMapYAML(t *testing.T) {
 
 func TestMapYAMLWithReferences(t *testing.T) {
 	s := new(testYamlAppConfig)
-	err := MapYAMLWithReferences(s, `fixtures`, []string{`defaults.yaml`})
+	err := MapWithReferences(s, `../fixtures`, []string{`defaults.yaml`})
 	assert.NoError(t, err)
 
 	assert.Equal(t, `earth`, s.GlobalValue)
@@ -89,10 +91,10 @@ func TestMapYAMLWithReferences(t *testing.T) {
 	assert.Equal(t, ``, s.App.Host)
 	assert.Equal(t, false, s.App.SSL)
 
-	SetEnv(true, Staging)
+	env.SetEnv(true, env.Staging)
 
 	s = new(testYamlAppConfig)
-	err = MapYAMLWithReferences(s, `fixtures`, []string{`defaults.yaml`})
+	err = MapWithReferences(s, `../fixtures`, []string{`defaults.yaml`})
 	assert.NoError(t, err)
 
 	assert.Equal(t, `world`, s.GlobalValue)
@@ -109,19 +111,18 @@ func TestMapYAMLWithReferences(t *testing.T) {
 
 func TestMapYAML_Errors(t *testing.T) {
 	s := new(testYamlAppConfig)
-	err := mapYAML(s, `fixtures`, []string{`illegal_character.yaml`})
+	err := mapYAML(s, `../fixtures`, []string{`illegal_character.yaml`})
 	assert.Error(t, err)
 
-	fileSystem = new(testFS)
-	err = mapYAML(s, `fixtures`, []string{`void.yaml`})
+	fsys.Set(new(testFS))
+	err = mapYAML(s, `../fixtures`, []string{`void.yaml`})
 	assert.Error(t, err)
 
-	// reset env
-	fileSystem = new(osFileSystem)
+	fsys.Reset()
 }
 
 func TestLoadYAML(t *testing.T) {
-	err := LoadYAML(`fixtures`)
+	err := Load(`../fixtures`)
 	assert.NoError(t, err)
 
 	assert.Equal(t, `earth`, os.Getenv(`GLOBAL_VALUE1`))
@@ -133,7 +134,7 @@ func TestLoadYAML(t *testing.T) {
 	assert.Equal(t, `cheese;cake;gherkin`, os.Getenv(`LIST[0]`))
 	assert.Equal(t, `bread;wine;prayer`, os.Getenv(`LIST[1]`))
 
-	assert.Equal(t, []string{`bread`, `wine`, `prayer`}, MustStringSlice(`LIST[1]`))
+	assert.Equal(t, []string{`bread`, `wine`, `prayer`}, env.MustStringSlice(`LIST[1]`))
 
 	assert.Equal(t, `postgres`, os.Getenv(`LISTMAP[1]_HOST`))
 	assert.Equal(t, `5432`, os.Getenv(`LISTMAP[1]_PORT`))
@@ -159,6 +160,6 @@ func TestLoadYAML(t *testing.T) {
 }
 
 func TestLoadYAML_Errors(t *testing.T) {
-	err := LoadYAML(`fixtures`, `illegal_character.yaml`)
+	err := Load(`../fixtures`, `illegal_character.yaml`)
 	assert.Error(t, err)
 }
